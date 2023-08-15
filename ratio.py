@@ -49,23 +49,17 @@ MGHist.GetXaxis().SetLimits(0.,3000.)
 pythiaHist.SetTitle("")
 
 
-# Creating ratio plot
+# Creating TRatioPlot
 ratioPlot = TRatioPlot(pythiaHist, MGHist)
 ratioPlot.SetH2DrawOpt("hist")    #noconfint 
 ratioPlot.Draw()
-ratioPlot.GetLowerRefYaxis().SetRangeUser(-0.1,2.8)
+ratioPlot.GetLowerRefYaxis().SetRangeUser(-0.1,2.1)
 ratioPlot.GetLowerRefYaxis().SetTitle("ratio")
 ratioPlot.GetUpperRefYaxis().SetTitle("hists")
-#ratioPlot.GetLowerRefGraph().SetLineColor(kGreen)
 
 
-# Converting ratio plot to TGraph, then to TH1F histogram
-#ratioTempHist = TGraph.GetHistogram(ratioPlot.GetLowerRefGraph())
-#print type(ratioPlot.GetLowerRefGraph())
+# Converting TRatioPlot to TGraph, then to TH1F histogram
 ratioTempGraph = ratioPlot.GetLowerRefGraph()
-#print(dir(ratioTempGraph))
-#ratioTempGraph.Draw()     # Seg fault happens upon quitting when this line is gone
-#gPad.Update()      # Troubleshooting from Tova
 numPoints = ratioTempGraph.GetN()
 xmin = TMath.MinElement(ratioTempGraph.GetN(), ratioTempGraph.GetX())
 xmax = TMath.MaxElement(ratioTempGraph.GetN(), ratioTempGraph.GetX())
@@ -86,9 +80,8 @@ for i in range (0, numPoints):
 canvas2 = TCanvas("canvas2")
 canvas2.cd(0)
 ratioHist.Draw()      # ("hist") for a straight line
-ratioHist.GetYaxis().SetRangeUser(-0.1,2.8)
+ratioHist.GetYaxis().SetRangeUser(-0.1,2.1)
 ratioHist.SetTitle("")
-#ratioHist.SetMarkerStyle(kPlus)    # Not working
 ratioHist.GetXaxis().SetTitle('P_{T} [GeV]')
 
 
@@ -108,7 +101,8 @@ d = legend2.SetHeader("Mass = " + mass + " GeV", "C")
 legend2.Draw()
 
 
-# Closing and saving a pdf (for each canvas) and one root file (for everything)
+# Closing and saving 2 pdfs (one for each canvas) 
+# Saving one root file (for pythiaHist, MGHist, and ratioHist)
 canvas1.SaveAs(outputFilename + "_1.pdf")
 canvas2.SaveAs(outputFilename + "_2.pdf")
 pythiaHist.Write("pythiaHist")
