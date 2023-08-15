@@ -28,7 +28,7 @@ MGFile = TFile.Open(MGFilename)
 outputFile = TFile(outputFilename + ".root", 'RECREATE')
 
 
-# Setting up the ROOT canvas
+# Setting up the ROOT canvas & hist permissions
 # Grabbing, normalizing, and recreating truth.py histograms
 TH1.AddDirectory(kFALSE)
 canvas1 = TCanvas("canvas1")
@@ -47,7 +47,6 @@ MGHist.Draw("hist")
 pythiaHist.GetXaxis().SetLimits(0.,3000.)
 MGHist.GetXaxis().SetLimits(0.,3000.)
 pythiaHist.SetTitle("Pythia vs. MadGraph")
-#overlaidHist = pythiaHist + MGHist      # How is this supposed to work?
 
 
 # Creating ratio plot
@@ -64,7 +63,7 @@ ratioPlot.GetUpperRefYaxis().SetTitle("hists")
 #ratioTempHist = TGraph.GetHistogram(ratioPlot.GetLowerRefGraph())
 ratioTempGraph = TGraph(ratioPlot.GetLowerRefGraph())
 #print(dir(ratioTempGraph))
-#ratioTempGraph.Draw()     # The seg fault happens when I remove this line!!!!
+#ratioTempGraph.Draw()     # Seg fault happens upon quitting when this line is gone
 #gPad.Update()      # Troubleshooting from Tova
 numPoints = ratioTempGraph.GetN()
 xmin = TMath.MinElement(ratioTempGraph.GetN(), ratioTempGraph.GetX())
@@ -76,23 +75,22 @@ for i in range (0, numPoints):
     ratioTempGraph.GetPoint(i, x, y)
     #x = ratioTempGraph.GetPointX(i)
     #y = ratioTempGraph.GetPointY(i)
-    ratioHist.Fill(x, y)
+    ratioHist.SetBinContent(i, x)
+    ratioHist.SetBinError(i, y)
 
 
 # Plotting ratio histogram
 canvas2 = TCanvas("canvas2")
 canvas2.cd(0)
-ratioHist.Draw("hist")
+ratioHist.Draw()      # ("hist") for a straight line
 ratioHist.GetYaxis().SetRangeUser(-0.1,2.8)
 ratioHist.SetTitle("pythiaHist Divided By MGHist")
-#atioHist.SetMarkerStyle(kPlus)    # Not working :(
+#ratioHist.SetMarkerStyle(kPlus)    # Not working
 ratioHist.GetXaxis().SetTitle('P_{T} [GeV]')
-#canvas1.Update()
-#print("why??")
+
 
 # Adding legends
 ratioPlot.GetUpperPad().cd()
-#canvas1.cd()
 legend1 = TLegend(0.3,0.7,0.7,0.9)
 a = legend1.SetHeader("Mass = " + mass + " GeV", "C")
 b = legend1.AddEntry(pythiaHist,"pythiaHist")
@@ -102,14 +100,9 @@ c.SetTextColor(kBlue)
 legend1.Draw()
 
 canvas2.cd()
-#gPad.Modified()
-#gPad.Update()
-#print("hello4")
-#ratioHist.cd()
 legend2 = TLegend(0.2,0.7,0.6,0.78)
 d = legend2.SetHeader("Mass = " + mass + " GeV", "C")
 legend2.Draw()
-#gPad.Update()
 
 
 # Closing and saving a pdf (for each canvas) and one root file (for everything)
@@ -117,7 +110,6 @@ canvas1.SaveAs(outputFilename + "_1.pdf")
 canvas2.SaveAs(outputFilename + "_2.pdf")
 pythiaHist.Write("pythiaHist")
 MGHist.Write("MGHist")
-#overlaidHist.Write("pythiaHist & MGHist")         # Not needed
 ratioHist.Write("ratioHist(pythiaHist/MGHist)")
 outputFile.Write()
 outputFile.Close()
