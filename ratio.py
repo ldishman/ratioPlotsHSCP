@@ -70,13 +70,11 @@ xmin = TMath.MinElement(ratioTempGraph.GetN(), ratioTempGraph.GetX())
 xmax = TMath.MaxElement(ratioTempGraph.GetN(), ratioTempGraph.GetX())
 ratioHist = TH1F('ratioHist', '', numPoints + 1, float(xmin), float(xmax))
 for i in range (0, numPoints):
-    #print("point count: ", ratioTempGraph.GetN(), numPoints)
     x , y = Double(), Double()
     ratioTempGraph.GetPoint(i, x, y)
-    #x = ratioTempGraph.GetPointX(i)
-    #y = ratioTempGraph.GetPointY(i)
-    ratioHist.SetBinContent(i, x)
-    ratioHist.SetBinError(i, y)
+    ey = ratioTempGraph.GetErrorY(i)
+    ratioHist.SetBinContent(ratioHist.FindBin(x), y)
+    ratioHist.SetBinError(ratioHist.FindBin(x), ey)
 
 
 # Plotting ratio histogram
@@ -100,7 +98,7 @@ c.SetTextColor(kBlue)
 legend1.Draw()
 
 canvas2.cd()
-legend2 = TLegend(0.2,0.7,0.6,0.78)
+legend2 = TLegend(0.2,0.8,0.5,0.86)
 d = legend2.SetHeader("Mass = " + mass + " GeV", "C")
 legend2.Draw()
 
