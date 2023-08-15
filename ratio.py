@@ -46,7 +46,7 @@ pythiaHist.Draw("hist")
 MGHist.Draw("hist")
 pythiaHist.GetXaxis().SetLimits(0.,3000.)
 MGHist.GetXaxis().SetLimits(0.,3000.)
-pythiaHist.SetTitle("Pythia vs. MadGraph")
+pythiaHist.SetTitle("")
 
 
 # Creating ratio plot
@@ -61,14 +61,19 @@ ratioPlot.GetUpperRefYaxis().SetTitle("hists")
 
 # Converting ratio plot to TGraph, then to TH1F histogram
 #ratioTempHist = TGraph.GetHistogram(ratioPlot.GetLowerRefGraph())
-ratioTempGraph = TGraph(ratioPlot.GetLowerRefGraph())
+#print type(ratioPlot.GetLowerRefGraph())
+ratioTempGraph = ratioPlot.GetLowerRefGraph()
 #print(dir(ratioTempGraph))
 #ratioTempGraph.Draw()     # Seg fault happens upon quitting when this line is gone
 #gPad.Update()      # Troubleshooting from Tova
 numPoints = ratioTempGraph.GetN()
 xmin = TMath.MinElement(ratioTempGraph.GetN(), ratioTempGraph.GetX())
 xmax = TMath.MaxElement(ratioTempGraph.GetN(), ratioTempGraph.GetX())
-ratioHist = TH1F('ratioHist', '', numPoints + 1, float(xmin), float(xmax))
+#ratioHist = TH1F('ratioHist', '', numPoints + 1, float(xmin), float(xmax))
+ratioHist = pythiaHist.Clone("ratioHist")
+ratioHist.Reset()
+ratioHist.SetLineColor(kBlue+1)
+ratioHist.GetYaxis().SetTitle("ratio")
 for i in range (0, numPoints):
     x , y = Double(), Double()
     ratioTempGraph.GetPoint(i, x, y)
@@ -82,7 +87,7 @@ canvas2 = TCanvas("canvas2")
 canvas2.cd(0)
 ratioHist.Draw()      # ("hist") for a straight line
 ratioHist.GetYaxis().SetRangeUser(-0.1,2.8)
-ratioHist.SetTitle("pythiaHist Divided By MGHist")
+ratioHist.SetTitle("")
 #ratioHist.SetMarkerStyle(kPlus)    # Not working
 ratioHist.GetXaxis().SetTitle('P_{T} [GeV]')
 
@@ -98,7 +103,7 @@ c.SetTextColor(kBlue)
 legend1.Draw()
 
 canvas2.cd()
-legend2 = TLegend(0.2,0.8,0.5,0.86)
+legend2 = TLegend(0.3,0.84,0.7,0.9)
 d = legend2.SetHeader("Mass = " + mass + " GeV", "C")
 legend2.Draw()
 
@@ -108,7 +113,7 @@ canvas1.SaveAs(outputFilename + "_1.pdf")
 canvas2.SaveAs(outputFilename + "_2.pdf")
 pythiaHist.Write("pythiaHist")
 MGHist.Write("MGHist")
-ratioHist.Write("ratioHist(pythiaHist/MGHist)")
+ratioHist.Write("ratioHist")
 outputFile.Write()
 outputFile.Close()
 
