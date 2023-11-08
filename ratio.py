@@ -15,16 +15,16 @@ def ratioPlotConvert(pythiaHist, MGHist):
     ratioPlot = TRatioPlot(MGHist, pythiaHist)
     ratioPlot.Draw()       # PROBLEM CHILD AREA
     ratioTempGraph = ratioPlot.GetLowerRefGraph()
-    #ratioTempGraph.SetDirectory(0)
-    #ratioTempGraph = ratioPlot.GetCalculationOutputGraph()
-    print ("hello0",type (ratioTempGraph))
+    # ratioTempGraph.SetDirectory(0)
+    # ratioTempGraph = ratioPlot.GetCalculationOutputGraph()
+    # print ("hello0",type (ratioTempGraph))
     return TGraphAsymmErrors(ratioTempGraph)
 
 def ratioHistFill(ratioTempGraph, ratioHist, xmin, xmax):
-    print type (ratioTempGraph)
+    # print type (ratioTempGraph)
     numPoints = ratioTempGraph.GetN()
-    print("numPoints in Object: ")
-    print(numPoints)
+    # print("numPoints in Object: ")
+    # print(numPoints)
     for i in range (xmin, xmax):
         x , y = Double(), Double()
         ratioTempGraph.GetPoint(i, x, y)
@@ -68,7 +68,9 @@ canvas1.cd()
 # MGHist = MGFile.Get("pTsum;1")
 
 pythiaHist = inputFile.Get("Pythia;1")
-MGHist = inputFile.Get("MadGraph;1")
+MGHist = inputFile.Get("Madgraph;1")
+
+# print(MGHist,type)
 
 pythiaHist.Scale(1./pythiaHist.Integral())
 MGHist.Scale(1./MGHist.Integral())
@@ -94,11 +96,11 @@ pythiaHist.SetTitle("")
 
 # Converting TRatioPlot to TGraph
 ratioTempGraph = ratioPlotConvert(pythiaHist, MGHist)
-print ("hello1",type (ratioTempGraph))
-ratioTempGraph2 = ratioPlotConvert(pythiaHist2, MGHist2)
-print ("hello2",type (ratioTempGraph2))
-ratioTempGraph3 = ratioPlotConvert(pythiaHist3, MGHist3)
-print ("hello3",type (ratioTempGraph3))
+# print ("hello1",type (ratioTempGraph))
+# ratioTempGraph2 = ratioPlotConvert(pythiaHist2, MGHist2)
+# print ("hello2",type (ratioTempGraph2))
+# ratioTempGraph3 = ratioPlotConvert(pythiaHist3, MGHist3)
+# print ("hello3",type (ratioTempGraph3))
 
 
 # Plotting original TRatioPlot
@@ -111,14 +113,14 @@ ratioPlot.GetUpperRefYaxis().SetTitle("hists")
 
 
 # Creating and Filling TH1F ratio histogram
-ratioHist = pythiaHist.Clone("ratioHist")
+ratioHist = MGHist.Clone("ratioHist")
 ratioHist.Reset()
 ratioHist.SetLineColor(kBlue+1)
 ratioHist.GetYaxis().SetTitle("ratio")
 
-ratioHistFill(ratioTempGraph, ratioHist, 0, 200)
-ratioHistFill(ratioTempGraph2, ratioHist, 200, 600)
-ratioHistFill(ratioTempGraph3, ratioHist, 600, 3000)
+ratioHistFill(ratioTempGraph, ratioHist, 0, 3000)
+# ratioHistFill(ratioTempGraph2, ratioHist, 200, 600)
+# ratioHistFill(ratioTempGraph3, ratioHist, 600, 3000)
 
 
 # Plotting ratio histogram
@@ -142,7 +144,7 @@ c = legend1.AddEntry(MGHist,"MGHist")
 b.SetTextColor(kRed)
 c.SetTextColor(kBlue)
 legend1.Draw()
-#print("did the canvas change work?:", canvas1.cd())
+print("did the canvas change work?:", canvas1.cd())
 
 canvas2.cd()
 legend2 = TLegend(0.3,0.84,0.7,0.9)
@@ -160,6 +162,3 @@ MGHist.Write("MGHist")
 ratioHist.Write("ratioHist")
 outputFile.Write()
 outputFile.Close()
-
-
-
