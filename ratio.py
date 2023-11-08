@@ -6,13 +6,13 @@ from FWCore.ParameterSet.VarParsing import VarParsing
 
 #gROOT.SetBatch(True)    # Stops showing the canvases every time you run (quicker)
 
-def inputHistRebin(inputHist):
-    inputHistX = inputHist.Clone("inputHistX")
-    inputHistX.Rebin(2)
-    return inputHistX
+# def inputHistRebin(inputHist):
+    # inputHistX = inputHist.Clone("inputHistX")
+    # inputHistX.Rebin(2)
+    # return inputHistX
 
 def ratioPlotConvert(pythiaHist, MGHist):
-    ratioPlot = TRatioPlot(pythiaHist, MGHist)
+    ratioPlot = TRatioPlot(MGHist, pythiaHist)
     ratioPlot.Draw()       # PROBLEM CHILD AREA
     ratioTempGraph = ratioPlot.GetLowerRefGraph()
     #ratioTempGraph.SetDirectory(0)
@@ -36,22 +36,25 @@ def ratioHistFill(ratioTempGraph, ratioHist, xmin, xmax):
 # Grabbing user-provided file names and mass
 options = VarParsing ('python')
 options.register ('mass','',VarParsing.multiplicity.singleton, VarParsing.varType.string, "mass")
-options.register ('pythiaFilename','',VarParsing.multiplicity.singleton, VarParsing.varType.string, "pythiaFilename")
-options.register ('MGFilename','',VarParsing.multiplicity.singleton, VarParsing.varType.string, "MGFilename")
+# options.register ('pythiaFilename','',VarParsing.multiplicity.singleton, VarParsing.varType.string, "pythiaFilename")
+# options.register ('MGFilename','',VarParsing.multiplicity.singleton, VarParsing.varType.string, "MGFilename")
+options.register ('inputFilename','',VarParsing.multiplicity.singleton, VarParsing.varType.string, "inputFilename")
 options.register ('outputFilename','',VarParsing.multiplicity.singleton, VarParsing.varType.string, "outputFilename")
 
 
 # Sorting user arguments
 options.parseArguments()
 mass = options.mass
-pythiaFilename = options.pythiaFilename
-MGFilename = options.MGFilename
+# pythiaFilename = options.pythiaFilename
+# MGFilename = options.MGFilename
+inputFilename = options.inputFilename
 outputFilename = options.outputFilename
 
 
 # Opening and creating appropriate files
-pythiaFile = TFile.Open(pythiaFilename)
-MGFile = TFile.Open(MGFilename)
+# pythiaFile = TFile.Open(pythiaFilename)
+# MGFile = TFile.Open(MGFilename)
+inputFile = TFile.Open(inputFilename)
 outputFile = TFile(outputFilename + ".root", 'RECREATE')
 
 
@@ -61,8 +64,11 @@ TH1.AddDirectory(kFALSE)
 canvas1 = TCanvas("canvas1")
 canvas1.cd()
 
-pythiaHist = pythiaFile.Get("di-glu pT;1")
-MGHist = MGFile.Get("pTsum;1")
+# pythiaHist = pythiaFile.Get("di-glu pT;1")
+# MGHist = MGFile.Get("pTsum;1")
+
+pythiaHist = inputFile.Get("Pythia;1")
+MGHist = inputFile.Get("MadGraph;1")
 
 pythiaHist.Scale(1./pythiaHist.Integral())
 MGHist.Scale(1./MGHist.Integral())
@@ -78,21 +84,24 @@ pythiaHist.GetXaxis().SetLimits(0.,3000.)
 MGHist.GetXaxis().SetLimits(0.,3000.)
 pythiaHist.SetTitle("")
 
+
 # Rebinning both input histograms
-pythiaHist2 = inputHistRebin(pythiaHist)
-pythiaHist3 = inputHistRebin(pythiaHist2)
-MGHist2 = inputHistRebin(MGHist)
-MGHist3 = inputHistRebin(MGHist2)
+# pythiaHist2 = inputHistRebin(pythiaHist)
+# pythiaHist3 = inputHistRebin(pythiaHist2)
+# MGHist2 = inputHistRebin(MGHist)
+# MGHist3 = inputHistRebin(MGHist2)
 
 
-# Converting TRatioPlot to TH1F Hist Step 1
+# Converting TRatioPlot to TGraph
 ratioTempGraph = ratioPlotConvert(pythiaHist, MGHist)
 print ("hello1",type (ratioTempGraph))
 ratioTempGraph2 = ratioPlotConvert(pythiaHist2, MGHist2)
+print ("hello2",type (ratioTempGraph2))
 ratioTempGraph3 = ratioPlotConvert(pythiaHist3, MGHist3)
+print ("hello3",type (ratioTempGraph3))
 
 
-# Creating Final TRatioPlot
+# Plotting original TRatioPlot
 ratioPlot = TRatioPlot(pythiaHist, MGHist)
 #ratioPlot.SetH2DrawOpt("hist")    #noconfint 
 ratioPlot.Draw()
@@ -101,7 +110,7 @@ ratioPlot.GetLowerRefYaxis().SetTitle("ratio")
 ratioPlot.GetUpperRefYaxis().SetTitle("hists")
 
 
-# Creating and Filling ratio histogram
+# Creating and Filling TH1F ratio histogram
 ratioHist = pythiaHist.Clone("ratioHist")
 ratioHist.Reset()
 ratioHist.SetLineColor(kBlue+1)
@@ -120,14 +129,11 @@ ratioHist.SetTitle("")
 ratioHist.SetLineColor(kBlue+1)
 ratioHist.GetXaxis().SetTitle('P_{T} [GeV]')
 #xbins = ratioHist.GetNbinsX()
-
-
 ratioHist.Draw("hist")
-ratioHist.GetXaxis().SetTitle('P_{T} [GeV]')
     
 
 #Adding legends
-#ratioPlot.GetUpperPad().cd()
+#ratioPlot.GetUpperRefObject().cd("same")
 canvas1.cd()
 legend1 = TLegend(0.3,0.7,0.7,0.9)
 a = legend1.SetHeader("Mass = " + mass + " GeV", "C")
@@ -136,13 +142,14 @@ c = legend1.AddEntry(MGHist,"MGHist")
 b.SetTextColor(kRed)
 c.SetTextColor(kBlue)
 legend1.Draw()
+#print("did the canvas change work?:", canvas1.cd())
 
 canvas2.cd()
 legend2 = TLegend(0.3,0.84,0.7,0.9)
 d = legend2.SetHeader("Mass = " + mass + " GeV", "C")
 legend2.Draw()
 
-# SOMETHING IN LEGENDS OR PDFS SOMETIMES CAUSING SEGFAULT ISSUES
+# SOMETHING IN LEGENDS AND/OR PDFS SOMETIMES CAUSING SEGFAULT ISSUES
 
 # Closing and saving 2 pdfs (one for each canvas) 
 # Saving one root file (for pythiaHist, MGHist, and ratioHist)
